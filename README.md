@@ -1,6 +1,19 @@
 # Gestao de Pedidos para Restaurantes
 
-Boilerplate full-stack com frontend em React + TypeScript (Vite) e backend em Node.js + Express + TypeScript + Prisma (PostgreSQL).
+## Sobre o Projeto
+
+O Pedido Certo é um sistema digital de gestão de pedidos para restaurantes, lanchonetes e food trucks que substitui processos manuais por uma plataforma integrada e em tempo real.
+
+Ele conecta salão, cozinha e gestão, permitindo registrar pedidos, acompanhar o status de preparo, controlar mesas e delivery, dividir contas e automatizar cálculos financeiros. Além disso, oferece relatórios de vendas e desempenho, ajudando o gestor a tomar decisões mais estratégicas.
+
+## Integrantes
+
+| Nome | Matricula |
+|------|-----------|
+| Ryan Nunes da Silva | 01431101 |
+| Anderson Djalma Santos Pinto | 01607677 |
+| Gabriel de Oliveira Barros | 01608601 |
+| Brian Samuel de Barros Santos | 01608705 |
 
 ## Estrutura
 
@@ -8,7 +21,11 @@ Boilerplate full-stack com frontend em React + TypeScript (Vite) e backend em No
 .
 |-- backend/
 |-- docker/
+|   `-- docker-compose.yml
 |-- frontend/
+|   |-- Dockerfile
+|   |-- nginx.conf
+|   `-- src/
 |-- .gitignore
 `-- README.md
 ```
@@ -38,11 +55,14 @@ Isso sobe:
 
 - PostgreSQL na porta `5432`
 - Backend na porta `3333`
+- Frontend na porta `5173`
 
-### 3. Testar API
+### 3. Acessar a aplicacao
 
-Abra no navegador ou use curl:
+**Frontend:**
+- Abra no navegador: `http://localhost:5173`
 
+**API Backend:**
 - `http://localhost:3333/health`
 - `http://localhost:3333/api/status`
 
@@ -72,6 +92,7 @@ Frontend padrao: `http://localhost:5173`
 
 ## Observacoes
 
-- Este projeto e um boilerplate funcional minimo.
-- Nao ha regras de negocio avancadas implementadas.
-- O backend aplica `prisma db push` ao iniciar no container para criar o schema base.
+- Este projeto e um boilerplate funcional completo com **3 containers**: PostgreSQL, Backend e Frontend.
+- O Frontend e servido via Nginx em container (build multi-stage Vite + Nginx Alpine).
+- O Backend aplica `prisma db push` ao iniciar para criar o schema base.
+- Escopo inicial.
