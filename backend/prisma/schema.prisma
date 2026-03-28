@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  GARCOM
+  COZINHA
+  CAIXA
+}
+
+enum StatusPedido {
+  RECEBIDO
+  EM_PREPARO
+  PRONTO
+  ENTREGUE
+}
+
+model Usuario {
+  id        String   @id @default(cuid())
+  nome      String
+  email     String   @unique
+  senhaHash String
+  role      Role     @default(GARCOM)
+  pedidos   Pedido[]
+  criadoEm  DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+}
+
+model Produto {
+  id          String      @id @default(cuid())
+  nome        String
+  descricao   String?
+  preco       Decimal     @db.Decimal(10, 2)
+  ativo       Boolean     @default(true)
+  itensPedido ItemPedido[]
+  criadoEm    DateTime    @default(now())
+  atualizadoEm DateTime   @updatedAt
+}
+
+model Mesa {
+  id          String   @id @default(cuid())
+  numero      Int      @unique
+  ocupada     Boolean  @default(false)
+  pedidos     Pedido[]
+  criadoEm    DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+}
+
+model Pedido {
+  id           String       @id @default(cuid())
+  codigo       String       @unique
+  status       StatusPedido @default(RECEBIDO)
+  observacao   String?
+  total        Decimal      @db.Decimal(10, 2)
+  usuarioId    String
+  mesaId       String?
+  usuario      Usuario      @relation(fields: [usuarioId], references: [id])
+  mesa         Mesa?        @relation(fields: [mesaId], references: [id])
+  itens        ItemPedido[]
+  criadoEm     DateTime     @default(now())
+  atualizadoEm DateTime     @updatedAt
+}
+
+model ItemPedido {
+  id         String   @id @default(cuid())
+  pedidoId   String
+  produtoId  String
+  quantidade Int      @default(1)
+  precoUnit  Decimal  @db.Decimal(10, 2)
+  pedido     Pedido   @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+  produto    Produto  @relation(fields: [produtoId], references: [id])
+}
