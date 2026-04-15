@@ -1,0 +1,170 @@
+import { useState } from "react";
+import { Outlet, NavLink, useNavigate } from "react-router";
+import {
+  LayoutDashboard,
+  ShoppingCart,
+  UtensilsCrossed,
+  Grid3x3,
+  ChefHat,
+  BarChart3,
+  Settings,
+  Search,
+  Bell,
+  Moon,
+  Sun,
+  LogOut,
+} from "lucide-react";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Badge } from "../components/ui/badge";
+import { Avatar, AvatarFallback } from "../components/ui/avatar";
+
+export function DashboardLayout() {
+  const [darkMode, setDarkMode] = useState(false);
+  const navigate = useNavigate();
+
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+    document.documentElement.classList.toggle("dark");
+  };
+
+  const handleNewOrder = () => {
+    navigate("/pedidos");
+  };
+
+  const menuItems = [
+    { icon: LayoutDashboard, label: "Dashboard", path: "/" },
+    { icon: ShoppingCart, label: "Pedidos", path: "/pedidos" },
+    { icon: UtensilsCrossed, label: "Cardápio", path: "/cardapio" },
+    { icon: Grid3x3, label: "Mesas", path: "/mesas" },
+    { icon: ChefHat, label: "Cozinha", path: "/cozinha" },
+    { icon: BarChart3, label: "Relatórios", path: "/relatorios" },
+    { icon: Settings, label: "Configurações", path: "/configuracoes" },
+  ];
+
+  return (
+    <div className="flex h-screen bg-background font-['Inter']">
+      {/* Sidebar */}
+      <aside className="w-[280px] bg-sidebar text-sidebar-foreground flex flex-col border-r border-sidebar-border shadow-lg">
+        {/* Logo */}
+        <div className="p-6 border-b border-sidebar-border">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center">
+              <UtensilsCrossed className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-white">Rápido Pedidos</h1>
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 px-4 py-6 space-y-2">
+          {menuItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              end={item.path === "/"}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                  isActive
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-md"
+                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                }`
+              }
+            >
+              <item.icon className="w-5 h-5" />
+              <span className="font-medium">{item.label}</span>
+            </NavLink>
+          ))}
+        </nav>
+
+        {/* Footer */}
+        <div className="p-4 border-t border-sidebar-border">
+          <div className="bg-sidebar-accent/30 rounded-xl p-4 mb-3">
+            <p className="text-sm text-sidebar-foreground/70 mb-1">
+              Restaurante
+            </p>
+            <p className="font-semibold text-sidebar-foreground">
+              Restaurante do Zé
+            </p>
+          </div>
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Sair
+          </Button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header */}
+        <header className="bg-card border-b border-border px-8 py-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            {/* Search */}
+            <div className="relative w-96">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Input
+                placeholder="Buscar pedidos, mesas, produtos..."
+                className="pl-10 bg-input-background border-border rounded-xl"
+              />
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-4">
+              <Button
+                onClick={handleNewOrder}
+                className="bg-accent hover:bg-accent/90 text-accent-foreground shadow-md px-6 rounded-xl"
+              >
+                <ShoppingCart className="w-4 h-4 mr-2" />
+                Novo Pedido
+              </Button>
+
+              <button
+                onClick={toggleDarkMode}
+                className="p-2 rounded-xl hover:bg-secondary transition-colors"
+              >
+                {darkMode ? (
+                  <Sun className="w-5 h-5 text-foreground" />
+                ) : (
+                  <Moon className="w-5 h-5 text-foreground" />
+                )}
+              </button>
+
+              <div className="relative">
+                <button className="p-2 rounded-xl hover:bg-secondary transition-colors">
+                  <Bell className="w-5 h-5 text-foreground" />
+                </button>
+                <Badge className="absolute -top-1 -right-1 bg-destructive text-white w-5 h-5 p-0 flex items-center justify-center text-xs rounded-full">
+                  3
+                </Badge>
+              </div>
+
+              <div className="flex items-center gap-3 pl-4 border-l border-border">
+                <Avatar className="w-9 h-9">
+                  <AvatarFallback className="bg-primary text-primary-foreground">
+                    JG
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">
+                    João Gerente
+                  </p>
+                  <p className="text-xs text-muted-foreground">Gerente</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Page Content */}
+        <main className="flex-1 overflow-auto">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+}
