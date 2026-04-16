@@ -4,7 +4,7 @@ import cors from "cors";
 import express, { Request, Response, NextFunction } from "express";
 import { Server as SocketIOServer } from "socket.io";
 
-import routes from "./routes/router";
+import routes from "./routes";
 
 const app = express();
 const server = http.createServer(app);
