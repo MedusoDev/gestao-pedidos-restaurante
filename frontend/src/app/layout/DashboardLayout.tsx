@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Outlet, NavLink, useNavigate } from "react-router";
+import { useContext, useState } from "react";
+import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -8,6 +8,7 @@ import {
   ChefHat,
   BarChart3,
   Settings,
+  UserPlus,
   Search,
   Bell,
   Moon,
@@ -18,9 +19,11 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Badge } from "../components/ui/badge";
 import { Avatar, AvatarFallback } from "../components/ui/avatar";
+import { AuthContext } from "../contexts/AuthContext";
 
 export function DashboardLayout() {
   const [darkMode, setDarkMode] = useState(false);
+  const { signOut, user } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const toggleDarkMode = () => {
@@ -29,17 +32,25 @@ export function DashboardLayout() {
   };
 
   const handleNewOrder = () => {
-    navigate("/pedidos");
+    navigate("/dashboard/pedidos");
+  };
+
+  const handleLogout = () => {
+    signOut();
+    navigate("/");
   };
 
   const menuItems = [
-    { icon: LayoutDashboard, label: "Dashboard", path: "/" },
-    { icon: ShoppingCart, label: "Pedidos", path: "/pedidos" },
-    { icon: UtensilsCrossed, label: "Cardápio", path: "/cardapio" },
-    { icon: Grid3x3, label: "Mesas", path: "/mesas" },
-    { icon: ChefHat, label: "Cozinha", path: "/cozinha" },
-    { icon: BarChart3, label: "Relatórios", path: "/relatorios" },
-    { icon: Settings, label: "Configurações", path: "/configuracoes" },
+    { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
+    { icon: ShoppingCart, label: "Pedidos", path: "/dashboard/pedidos" },
+    { icon: UtensilsCrossed, label: "Cardápio", path: "/dashboard/cardapio" },
+    { icon: Grid3x3, label: "Mesas", path: "/dashboard/mesas" },
+    { icon: ChefHat, label: "Cozinha", path: "/dashboard/cozinha" },
+    { icon: BarChart3, label: "Relatórios", path: "/dashboard/relatorios" },
+    { icon: Settings, label: "Configurações", path: "/dashboard/configuracoes" },
+    ...(user?.role === "ADMIN"
+      ? [{ icon: UserPlus, label: "Registro", path: "/dashboard/registro" }]
+      : []),
   ];
 
   return (
@@ -91,6 +102,7 @@ export function DashboardLayout() {
           </div>
           <Button
             variant="ghost"
+            onClick={handleLogout}
             className="w-full justify-start text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
           >
             <LogOut className="w-4 h-4 mr-2" />

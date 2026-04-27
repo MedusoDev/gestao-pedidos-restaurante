@@ -1,10 +1,8 @@
 export function Tables() {
   return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold text-foreground">Mesas</h1>
-      <p className="text-muted-foreground mt-2">
-        Esta página está em desenvolvimento. Aqui você poderá gerenciar as mesas do restaurante.
-      </p>
+    <div>
+      <h1 className="text-2xl font-bold">Mesas</h1>
+      <p>Página de gerenciamento de mesas.</p>
     </div>
   );
 }
