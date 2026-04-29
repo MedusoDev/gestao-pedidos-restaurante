@@ -5,6 +5,7 @@ interface AuthUser {
   nome: string
   email: string
   role: string
+  estabelecimentoId?: string
 }
 
 interface AuthContextData {

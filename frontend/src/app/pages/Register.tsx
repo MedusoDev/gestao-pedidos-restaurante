@@ -48,7 +48,10 @@ export function Register() {
     setSuccessMessage('')
 
     try {
-      await api.post('/usuarios', values)
+      await api.post('/usuarios', {
+        ...values,
+        estabelecimentoId: user?.estabelecimentoId,
+      })
       form.reset({
         nome: '',
         email: '',

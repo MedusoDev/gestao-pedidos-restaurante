@@ -43,7 +43,7 @@ export function LoginForm() {
         senha: values.password, // O backend espera 'senha'
       })
 
-      const { token, ...user } = response.data
+      const { token, user } = response.data
 
       signIn(token, user)
 
