@@ -3,6 +3,7 @@ import { DashboardLayout } from './layout/DashboardLayout'
 import { Dashboard } from './pages/Dashboard'
 import { Settings } from './pages/Settings'
 import { Register } from './pages/Register'
+import { Mesas } from './pages/Mesas'
 import { Auth } from './pages/Auth'
 import { useContext } from 'react'
 import { AuthContext } from './contexts/AuthContext'
@@ -40,6 +41,11 @@ export const router = createBrowserRouter([
             path: 'registro',
             element: <AdminRoute />,
             children: [{ index: true, Component: Register }],
+          },
+          {
+            path: 'mesas',
+            element: <AdminRoute />,
+            children: [{ index: true, Component: Mesas }],
           },
         ],
       },

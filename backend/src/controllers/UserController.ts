@@ -31,19 +31,46 @@ export class UserController {
         perfil: userPerfil,
         estabelecimentoId
       },
-      select: { id: true, nome: true, email: true, perfil: true },
+      select: {
+        id: true,
+        nome: true,
+        email: true,
+        perfil: true,
+        estabelecimentoId: true,
+        estabelecimento: {
+          select: {
+            nome: true,
+          },
+        },
+      },
     })
 
     return res.json({
       ...user,
       role: user.perfil,
+      estabelecimentoNome: user.estabelecimento.nome,
     })
   }
 
   async login(req: Request, res: Response) {
     const { email, senha } = req.body
 
-    const user = await prisma.usuario.findUnique({ where: { email } })
+    const user = await prisma.usuario.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        nome: true,
+        email: true,
+        senhaHash: true,
+        perfil: true,
+        estabelecimentoId: true,
+        estabelecimento: {
+          select: {
+            nome: true,
+          },
+        },
+      },
+    })
     if (!user) return res.status(401).json({ error: 'E-mail ou senha incorretos' })
 
     const passwordMatch = await compare(senha, user.senhaHash)
@@ -56,7 +83,14 @@ export class UserController {
     )
 
     return res.json({
-      user: { id: user.id, nome: user.nome, email: user.email, role: user.perfil, estabelecimentoId: user.estabelecimentoId },
+      user: {
+        id: user.id,
+        nome: user.nome,
+        email: user.email,
+        role: user.perfil,
+        estabelecimentoId: user.estabelecimentoId,
+        estabelecimentoNome: user.estabelecimento.nome,
+      },
       token,
     })
   }
@@ -64,7 +98,18 @@ export class UserController {
   async me(req: Request, res: Response) {
     const user = await prisma.usuario.findUnique({
       where: { id: req.user_id },
-      select: { id: true, nome: true, email: true, perfil: true },
+      select: {
+        id: true,
+        nome: true,
+        email: true,
+        perfil: true,
+        estabelecimentoId: true,
+        estabelecimento: {
+          select: {
+            nome: true,
+          },
+        },
+      },
     })
 
     if (!user) {
@@ -74,6 +119,7 @@ export class UserController {
     return res.json({
       ...user,
       role: user.perfil,
+      estabelecimentoNome: user.estabelecimento.nome,
     })
   }
 }
