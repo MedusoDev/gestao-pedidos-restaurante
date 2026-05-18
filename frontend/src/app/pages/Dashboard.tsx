@@ -1,125 +1,83 @@
-import { useState } from "react";
-import {
-  Clock,
-  TrendingUp,
-  AlertCircle,
-  DollarSign,
-  Eye,
-  MoreVertical,
-} from "lucide-react";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+import { useContext } from "react";
+import { BarChart3, Clock3, ClipboardList, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
-import { Badge } from "../components/ui/badge";
-import { Button } from "../components/ui/button";
-import { OrderDetailsModal } from "../components/OrderDetailsModal";
+import { AuthContext } from "../contexts/AuthContext";
+import { EstablishmentOverview } from "../components/EstablishmentOverview";
 
-const chartData = [
-  { hour: "08:00", pedidos: 5 },
-  { hour: "09:00", pedidos: 12 },
-  { hour: "10:00", pedidos: 18 },
-  { hour: "11:00", pedidos: 28 },
-  { hour: "12:00", pedidos: 45 },
-  { hour: "13:00", pedidos: 52 },
-  { hour: "14:00", pedidos: 38 },
-  { hour: "15:00", pedidos: 22 },
-];
-
-const pendingOrders = [
+const metrics = [
   {
-    id: "#1234",
-    table: "Mesa 5",
-    customer: "Carlos Silva",
-    items: "2x Picanha, 1x Água",
-    total: "R$ 89,90",
-    status: "Pendente",
-    time: "14:35",
+    title: "Pedidos hoje",
+    value: "0",
+    description: "Dados consolidados do estabelecimento",
+    icon: ClipboardList,
   },
   {
-    id: "#1235",
-    table: "Mesa 12",
-    customer: "Ana Costa",
-    items: "3x Pizza Margherita, 2x Refrigerante",
-    total: "R$ 142,00",
-    status: "Pendente",
-    time: "14:42",
+    title: "Tempo médio",
+    value: "0",
+    description: "Média de preparo em tempo real",
+    icon: Clock3,
   },
   {
-    id: "#1236",
-    table: "Mesa 3",
-    customer: "Roberto Lima",
-    items: "1x Salada Caesar, 1x Suco",
-    total: "R$ 35,50",
-    status: "Pendente",
-    time: "14:48",
-  },
-  {
-    id: "#1237",
-    table: "Mesa 8",
-    customer: "Mariana Souza",
-    items: "2x Hambúrguer Gourmet, 2x Batata Frita",
-    total: "R$ 98,00",
-    status: "Pendente",
-    time: "14:52",
-  },
-];
-
-const preparingOrders = [
-  {
-    id: "#1230",
-    table: "Mesa 2",
-    items: ["2x Filé Mignon", "1x Risoto de Funghi"],
-    time: "12 min",
-    status: "Em Preparação",
-  },
-  {
-    id: "#1231",
-    table: "Mesa 7",
-    items: ["3x Salmão Grelhado", "2x Legumes"],
-    time: "8 min",
-    status: "Em Preparação",
-  },
-  {
-    id: "#1232",
-    table: "Mesa 15",
-    items: ["4x Lasagna", "1x Bruschetta"],
-    time: "15 min",
-    status: "Em Preparação",
+    title: "Crescimento",
+    value: "0",
+    description: "Comparado com o período anterior",
+    icon: TrendingUp,
   },
 ];
 
 export function Dashboard() {
-  const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
-
-  const getStatusBadge = (status: string) => {
-    const variants: Record<string, { bg: string; text: string }> = {
-      Pendente: { bg: "bg-yellow-100", text: "text-yellow-800" },
-      "Em Preparação": { bg: "bg-orange-100", text: "text-orange-800" },
-      Pronto: { bg: "bg-green-100", text: "text-green-800" },
-      Entregue: { bg: "bg-blue-100", text: "text-blue-800" },
-    };
-
-    const variant = variants[status] || variants.Pendente;
-    return (
-      <Badge
-        className={`${variant.bg} ${variant.text} border-0 px-3 py-1 rounded-lg`}
-      >
-        {status}
-      </Badge>
-    );
-  };
+  const { user } = useContext(AuthContext);
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold">Dashboard</h1>
-      <p>Página principal do dashboard.</p>
+    <div className="space-y-6 p-8">
+      <div className="rounded-3xl bg-gradient-to-r from-slate-950 via-slate-900 to-slate-800 p-8 text-white shadow-xl">
+        <p className="text-sm uppercase tracking-[0.3em] text-white/60">Dashboard</p>
+        <h1 className="mt-3 text-3xl font-bold">
+          {user?.estabelecimentoNome || "Estabelecimento"}
+        </h1>
+        <p className="mt-2 max-w-2xl text-white/75">
+          Visão centralizada dos números do restaurante, com as principais informações do
+          estabelecimento e atalhos de operação em um único lugar.
+        </p>
+      </div>
+
+      <EstablishmentOverview />
+
+      <div className="grid gap-4 md:grid-cols-3">
+        {metrics.map((metric) => (
+          <Card key={metric.title} className="rounded-2xl border-border shadow-sm">
+            <CardContent className="flex items-start justify-between p-6">
+              <div>
+                <p className="text-sm text-muted-foreground">{metric.title}</p>
+                <h3 className="mt-1 text-3xl font-bold text-foreground">{metric.value}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">{metric.description}</p>
+              </div>
+              <div className="rounded-2xl bg-accent/10 p-3 text-accent">
+                <metric.icon className="h-6 w-6" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <Card className="rounded-2xl border-border shadow-sm">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-accent" />
+            Resumo operacional
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-2">
+          <div className="rounded-xl border border-border bg-muted/40 p-4">
+            <p className="text-sm text-muted-foreground">Pedidos pendentes</p>
+            <p className="mt-2 text-2xl font-bold text-foreground">0</p>
+          </div>
+          <div className="rounded-xl border border-border bg-muted/40 p-4">
+            <p className="text-sm text-muted-foreground">Pedidos em preparação</p>
+            <p className="mt-2 text-2xl font-bold text-foreground">0</p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

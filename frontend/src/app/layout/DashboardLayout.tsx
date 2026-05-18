@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   Settings,
   UserPlus,
+  Table2,
   Search,
   Bell,
   Moon,
@@ -39,7 +40,10 @@ export function DashboardLayout() {
     { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
     { icon: Settings, label: "Configurações", path: "/dashboard/configuracoes" },
     ...(user?.role === "ADMIN"
-      ? [{ icon: UserPlus, label: "Registro", path: "/dashboard/registro" }]
+      ? [
+          { icon: UserPlus, label: "Registro", path: "/dashboard/registro" },
+          { icon: Table2, label: "Mesas", path: "/dashboard/mesas" },
+        ]
       : []),
   ];
 
@@ -87,7 +91,7 @@ export function DashboardLayout() {
               Restaurante
             </p>
             <p className="font-semibold text-sidebar-foreground">
-              Restaurante do Zé
+              {user?.estabelecimentoNome || "Estabelecimento"}
             </p>
           </div>
           <Button
