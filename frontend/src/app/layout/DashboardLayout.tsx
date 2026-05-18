@@ -1,45 +1,50 @@
-import { useState } from "react";
-import { Outlet, NavLink, useNavigate } from "react-router";
+import { useContext, useState, useEffect } from "react";
+import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
-  ShoppingCart,
-  UtensilsCrossed,
-  Grid3x3,
-  ChefHat,
-  BarChart3,
   Settings,
+  UserPlus,
+  Table2,
   Search,
   Bell,
   Moon,
   Sun,
   LogOut,
+  UtensilsCrossed,
 } from "lucide-react";
-import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import { Badge } from "../components/ui/badge";
 import { Avatar, AvatarFallback } from "../components/ui/avatar";
+import { Button } from "../components/ui/button";
+import { AuthContext } from "../contexts/AuthContext";
 
 export function DashboardLayout() {
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
+  const { signOut, user } = useContext(AuthContext);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    document.documentElement.classList.add("dark");
+  }, []);
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
     document.documentElement.classList.toggle("dark");
   };
 
-  const handleNewOrder = () => {
-    navigate("/pedidos");
+  const handleLogout = () => {
+    signOut();
+    navigate("/");
   };
 
   const menuItems = [
-    { icon: LayoutDashboard, label: "Dashboard", path: "/" },
-    { icon: ShoppingCart, label: "Pedidos", path: "/pedidos" },
-    { icon: UtensilsCrossed, label: "Cardápio", path: "/cardapio" },
-    { icon: Grid3x3, label: "Mesas", path: "/mesas" },
-    { icon: ChefHat, label: "Cozinha", path: "/cozinha" },
-    { icon: BarChart3, label: "Relatórios", path: "/relatorios" },
-    { icon: Settings, label: "Configurações", path: "/configuracoes" },
+    { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
+    { icon: Settings, label: "Configurações", path: "/dashboard/configuracoes" },
+    ...(user?.role === "ADMIN"
+      ? [
+          { icon: UserPlus, label: "Registro", path: "/dashboard/registro" },
+          { icon: Table2, label: "Mesas", path: "/dashboard/mesas" },
+        ]
+      : []),
   ];
 
   return (
@@ -86,11 +91,12 @@ export function DashboardLayout() {
               Restaurante
             </p>
             <p className="font-semibold text-sidebar-foreground">
-              Restaurante do Zé
+              {user?.estabelecimentoNome || "Estabelecimento"}
             </p>
           </div>
           <Button
             variant="ghost"
+            onClick={handleLogout}
             className="w-full justify-start text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
           >
             <LogOut className="w-4 h-4 mr-2" />
@@ -115,14 +121,6 @@ export function DashboardLayout() {
 
             {/* Actions */}
             <div className="flex items-center gap-4">
-              <Button
-                onClick={handleNewOrder}
-                className="bg-accent hover:bg-accent/90 text-accent-foreground shadow-md px-6 rounded-xl"
-              >
-                <ShoppingCart className="w-4 h-4 mr-2" />
-                Novo Pedido
-              </Button>
-
               <button
                 onClick={toggleDarkMode}
                 className="p-2 rounded-xl hover:bg-secondary transition-colors"
@@ -138,22 +136,19 @@ export function DashboardLayout() {
                 <button className="p-2 rounded-xl hover:bg-secondary transition-colors">
                   <Bell className="w-5 h-5 text-foreground" />
                 </button>
-                <Badge className="absolute -top-1 -right-1 bg-destructive text-white w-5 h-5 p-0 flex items-center justify-center text-xs rounded-full">
-                  3
-                </Badge>
               </div>
 
               <div className="flex items-center gap-3 pl-4 border-l border-border">
                 <Avatar className="w-9 h-9">
                   <AvatarFallback className="bg-primary text-primary-foreground">
-                    JG
+                    {user?.nome?.slice(0, 2).toUpperCase() || "U"}
                   </AvatarFallback>
                 </Avatar>
                 <div>
                   <p className="text-sm font-semibold text-foreground">
-                    João Gerente
+                    {user?.nome || "Usuário"}
                   </p>
-                  <p className="text-xs text-muted-foreground">Gerente</p>
+                  <p className="text-xs text-muted-foreground">{user?.role || "Usuário"}</p>
                 </div>
               </div>
             </div>
