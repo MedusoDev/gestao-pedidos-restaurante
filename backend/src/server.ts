@@ -4,7 +4,7 @@ import cors from "cors";
 import express, { Request, Response, NextFunction } from "express";
 import { Server as SocketIOServer } from "socket.io";
 
-import router from './routes/router';
+import routes from "./routes/router";
 
 const app = express();
 const server = http.createServer(app);
@@ -25,7 +25,7 @@ app.get("/health", (_req, res) => {
 });
 
 // Suas rotas centralizadas
-app.use("/api", router);
+app.use("/api", routes);
 
 /**
  * Middleware Global de Erros

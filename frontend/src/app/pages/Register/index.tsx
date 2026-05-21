@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { api } from '@/lib/axios'
 import { AuthContext } from '../../contexts/AuthContext'
+import Notification from '../../components/Notification'
 
 import { Button } from '@/app/components/ui/button'
 import {
@@ -93,6 +94,11 @@ export function Register() {
       console.error('Falha ao criar usuário:', error)
       alert('Não foi possível criar o perfil.')
     }
+    setUserSuccessMessage('Perfil criado com sucesso.')
+
+    setTimeout(() => {
+      setUserSuccessMessage('')
+    }, 3000)
   }
 
   async function handleMesaSubmit(values: z.infer<typeof mesaFormSchema>) {
@@ -122,9 +128,25 @@ export function Register() {
       console.error('Falha ao criar mesa:', error)
       alert('Não foi possível criar a mesa.')
     }
+    setMesaSuccessMessage('Mesa criada com sucesso.')
+
+    setTimeout(() => {
+      setMesaSuccessMessage('')
+    }, 3000)
   }
 
   return (
+          <>
+        <Notification
+          message={userSuccessMessage}
+          type="success"
+        />
+        <Notification
+          message={mesaSuccessMessage}
+          type="success"
+        />
+
+  <div className="min-h-full bg-muted/30 p-8">
     <div className="min-h-full bg-muted/30 p-8">
       <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-2">
         <Card className="border-border shadow-sm">
@@ -204,10 +226,6 @@ export function Register() {
                   )}
                 />
 
-                {userSuccessMessage ? (
-                  <p className="text-sm font-medium text-green-600">{userSuccessMessage}</p>
-                ) : null}
-
                 <Button type="submit" className="w-full" disabled={userForm.formState.isSubmitting}>
                   {userForm.formState.isSubmitting ? 'Criando...' : 'Criar perfil'}
                 </Button>
@@ -281,10 +299,6 @@ export function Register() {
                   )}
                 />
 
-                {mesaSuccessMessage ? (
-                  <p className="text-sm font-medium text-green-600">{mesaSuccessMessage}</p>
-                ) : null}
-
                 <Button type="submit" className="w-full" disabled={mesaForm.formState.isSubmitting}>
                   {mesaForm.formState.isSubmitting ? 'Criando...' : 'Criar mesa'}
                 </Button>
@@ -294,5 +308,7 @@ export function Register() {
         </Card>
       </div>
     </div>
+      </div>
+  </>
   )
 }
