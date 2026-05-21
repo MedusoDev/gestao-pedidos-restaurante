@@ -1,0 +1,170 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PerfilUsuario {
+  ADMIN
+  GERENTE
+  GARCOM
+  COZINHA
+  CAIXA
+}
+
+enum StatusMesa {
+  LIVRE
+  OCUPADA
+  RESERVADA
+  MANUTENCAO
+}
+
+enum TipoPedido {
+  MESA
+  DELIVERY
+}
+
+enum StatusPedido {
+  RECEBIDO
+  EM_PREPARO
+  PRONTO
+  ENTREGUE
+  CANCELADO
+}
+
+enum StatusEntrega {
+  PENDENTE
+  EM_ROTA
+  ENTREGUE
+  CANCELADA
+}
+
+model Estabelecimento {
+  id          String      @id @default(uuid()) @db.Uuid @map("id_estab")
+  nome        String
+  cnpj        String      @unique
+  endereco    String
+  telefone    String?
+  horarioFunc Json?       @map("horario_func")
+
+  usuarios    Usuario[]
+  mesas       Mesa[]
+  categorias  Categoria[]
+
+  @@map("estabelecimento")
+}
+
+model Usuario {
+  id                String           @id @default(uuid()) @db.Uuid @map("id_usuario")
+  nome              String
+  email             String           @unique
+  senhaHash         String           @map("senha_hash")
+  perfil            PerfilUsuario
+  ativo             Boolean          @default(true)
+  criadoEm          DateTime         @default(now()) @map("criado_em")
+
+  estabelecimentoId String           @db.Uuid @map("id_estab")
+  estabelecimento   Estabelecimento  @relation(fields: [estabelecimentoId], references: [id])
+
+  pedidos           Pedido[]
+
+  @@map("usuario")
+}
+
+model Mesa {
+  id                String           @id @default(uuid()) @db.Uuid @map("id_mesa")
+  numero            Int
+  capacidade        Int
+  status            StatusMesa
+
+  estabelecimentoId String           @db.Uuid @map("id_estab")
+  estabelecimento   Estabelecimento  @relation(fields: [estabelecimentoId], references: [id])
+
+  pedidos           Pedido[]
+
+  @@unique([estabelecimentoId, numero])
+  @@map("mesa")
+}
+
+model Categoria {
+  id                String           @id @default(uuid()) @db.Uuid @map("id_categoria")
+  nome              String
+  ordemExibicao     Int              @default(0) @map("ordem_exibicao")
+
+  estabelecimentoId String           @db.Uuid @map("id_estab")
+  estabelecimento   Estabelecimento  @relation(fields: [estabelecimentoId], references: [id])
+
+  itens             ItemCardapio[]
+
+  @@map("categoria")
+}
+
+model ItemCardapio {
+  id           String       @id @default(uuid()) @db.Uuid @map("id_item")
+  nome         String
+  descricao    String?
+  preco        Decimal      @db.Decimal(10, 2)
+  fotoUrl      String?      @map("foto_url")
+  disponivel   Boolean      @default(true)
+
+  categoriaId  String       @db.Uuid @map("id_categoria")
+  categoria    Categoria    @relation(fields: [categoriaId], references: [id])
+
+  itensPedido  ItemPedido[]
+
+  @@map("item_cardapio")
+}
+
+model Pedido {
+  id         String        @id @default(uuid()) @db.Uuid @map("id_pedido")
+  tipo       TipoPedido
+  status     StatusPedido  @default(RECEBIDO)
+  subtotal   Decimal       @db.Decimal(10, 2)
+  desconto   Decimal       @default(0) @db.Decimal(10, 2)
+  gorjeta    Decimal       @default(0) @db.Decimal(10, 2)
+  total      Decimal       @db.Decimal(10, 2)
+  criadoEm   DateTime      @default(now()) @map("criado_em")
+
+  usuarioId  String        @db.Uuid @map("id_usuario")
+  usuario    Usuario       @relation(fields: [usuarioId], references: [id])
+
+  mesaId     String?       @db.Uuid @map("id_mesa")
+  mesa       Mesa?         @relation(fields: [mesaId], references: [id])
+
+  itens      ItemPedido[]
+  delivery   Delivery?
+
+  @@map("pedido")
+}
+
+model ItemPedido {
+  id            String        @id @default(uuid()) @db.Uuid @map("id_item_pedido")
+  quantidade    Int
+  precoUnitario Decimal       @db.Decimal(10, 2) @map("preco_unitario")
+  observacoes   String?
+
+  pedidoId      String        @db.Uuid @map("id_pedido")
+  pedido        Pedido        @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+
+  itemId        String        @db.Uuid @map("id_item")
+  item          ItemCardapio  @relation(fields: [itemId], references: [id])
+
+  @@map("item_pedido")
+}
+
+model Delivery {
+  id               String         @id @default(uuid()) @db.Uuid @map("id_delivery")
+  nomeCliente      String         @map("nome_cliente")
+  telefone         String
+  enderecoEntrega  String         @map("endereco_entrega")
+  taxaEntrega      Decimal        @db.Decimal(10, 2) @map("taxa_entrega")
+  statusEntrega    StatusEntrega  @map("status_entrega")
+
+  pedidoId         String         @unique @db.Uuid @map("id_pedido")
+  pedido           Pedido         @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+
+  @@map("delivery")
+}
