@@ -14,6 +14,7 @@ interface AuthContextData {
   user: AuthUser | null
   signIn: (token: string, user: AuthUser) => void
   signOut: () => void
+  updateUser: (user: AuthUser) => void
 }
 
 export const AuthContext = createContext({} as AuthContextData)
@@ -23,14 +24,10 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<AuthUser | null>(null)
-
-  useEffect(() => {
+  const [user, setUser] = useState<AuthUser | null>(() => {
     const storedUser = localStorage.getItem('@gestao-pedidos:user')
-    if (storedUser) {
-      setUser(JSON.parse(storedUser))
-    }
-  }, [])
+    return storedUser ? JSON.parse(storedUser) : null
+  })
 
   const isAuthenticated = !!user
 
@@ -46,8 +43,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setUser(null)
   }
 
+  function updateUser(updatedUser: AuthUser) {
+    localStorage.setItem('@gestao-pedidos:user', JSON.stringify(updatedUser))
+    setUser(updatedUser)
+  }
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, signIn, signOut }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, signIn, signOut, updateUser }}>
       {children}
     </AuthContext.Provider>
   )

@@ -16,6 +16,10 @@ export class MesaController {
       return res.status(404).json({ error: 'Usuário não encontrado' })
     }
 
+    if (!user.estabelecimentoId) {
+      return res.status(400).json({ error: 'Usuário não está vinculado a um estabelecimento' })
+    }
+
     const mesas = await prisma.mesa.findMany({
       where: {
         estabelecimentoId: user.estabelecimentoId,

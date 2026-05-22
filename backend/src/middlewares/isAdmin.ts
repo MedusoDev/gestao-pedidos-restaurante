@@ -9,7 +9,7 @@ export async function isAdmin(req: Request, res: Response, next: NextFunction) {
     select: { perfil: true },
   })
 
-  if (!user || user.perfil !== 'ADMIN') {
+  if (!user || !['ADMIN', 'SUPER_ADMIN'].includes(user.perfil)) {
     return res.status(403).json({ error: 'Acesso permitido apenas para administradores' })
   }
 

@@ -8,6 +8,10 @@ import { Auth } from './pages/Auth'
 import { useContext } from 'react'
 import { AuthContext } from './contexts/AuthContext'
 
+import { SuperAdminLayout } from './layout/SuperAdminLayout'
+import { SuperAdminDashboard } from './pages/SuperAdminDashboard'
+import { SuperAdminUsers } from './pages/SuperAdminUsers'
+
 const PrivateRoute = () => {
   const { isAuthenticated } = useContext(AuthContext)
   return isAuthenticated ? <Outlet /> : <Navigate to="/" replace />
@@ -20,13 +24,37 @@ const AdminRoute = () => {
     return <Navigate to="/" replace />
   }
 
-  return user?.role === 'ADMIN' ? <Outlet /> : <Navigate to="/dashboard" replace />
+  const isAdminOrSuper = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
+  return isAdminOrSuper ? <Outlet /> : <Navigate to="/dashboard" replace />
+}
+
+const SuperAdminRoute = () => {
+  const { user, isAuthenticated } = useContext(AuthContext)
+
+  if (!isAuthenticated) {
+    return <Navigate to="/" replace />
+  }
+
+  return user?.role === 'SUPER_ADMIN' ? <Outlet /> : <Navigate to="/dashboard" replace />
 }
 
 export const router = createBrowserRouter([
   {
     path: '/',
     Component: Auth,
+  },
+  {
+    path: '/superadmin',
+    element: <SuperAdminRoute />,
+    children: [
+      {
+        element: <SuperAdminLayout />,
+        children: [
+          { index: true, Component: SuperAdminDashboard },
+          { path: 'usuarios', Component: SuperAdminUsers },
+        ],
+      },
+    ],
   },
   {
     path: '/dashboard',

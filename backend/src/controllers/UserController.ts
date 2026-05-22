@@ -10,11 +10,11 @@ export class UserController {
     const { nome, email, senha, perfil, role, estabelecimentoId } = req.body
     const userPerfil = perfil ?? role
 
-    if (!['ADMIN', 'GERENTE', 'GARCOM'].includes(userPerfil)) {
+    if (!['SUPER_ADMIN', 'ADMIN', 'GERENTE', 'GARCOM'].includes(userPerfil)) {
       return res.status(400).json({ error: 'Perfil inválido' })
     }
 
-    if (!estabelecimentoId) {
+    if (userPerfil !== 'SUPER_ADMIN' && !estabelecimentoId) {
       return res.status(400).json({ error: 'estabelecimentoId é obrigatório' })
     }
 
@@ -48,7 +48,7 @@ export class UserController {
     return res.json({
       ...user,
       role: user.perfil,
-      estabelecimentoNome: user.estabelecimento.nome,
+      estabelecimentoNome: user.estabelecimento?.nome || null,
     })
   }
 
@@ -89,7 +89,7 @@ export class UserController {
         email: user.email,
         role: user.perfil,
         estabelecimentoId: user.estabelecimentoId,
-        estabelecimentoNome: user.estabelecimento.nome,
+        estabelecimentoNome: user.estabelecimento?.nome || null,
       },
       token,
     })
@@ -119,7 +119,59 @@ export class UserController {
     return res.json({
       ...user,
       role: user.perfil,
-      estabelecimentoNome: user.estabelecimento.nome,
+      estabelecimentoNome: user.estabelecimento?.nome || null,
     })
+  }
+
+  async index(req: Request, res: Response) {
+    const usuarios = await prisma.usuario.findMany({
+      select: {
+        id: true,
+        nome: true,
+        email: true,
+        perfil: true,
+        ativo: true,
+        estabelecimentoId: true,
+        estabelecimento: {
+          select: {
+            nome: true,
+          },
+        },
+      },
+      orderBy: {
+        criadoEm: 'desc'
+      }
+    })
+
+    const usuariosFormatados = usuarios.map(u => ({
+      ...u,
+      role: u.perfil,
+      estabelecimentoNome: u.estabelecimento?.nome || null,
+    }))
+
+    return res.json(usuariosFormatados)
+  }
+
+  async delete(req: Request, res: Response) {
+    const { id } = req.params
+
+    const user = await prisma.usuario.findUnique({
+      where: { id },
+      select: { perfil: true }
+    })
+
+    if (!user) {
+      return res.status(404).json({ error: 'Usuário não encontrado' })
+    }
+
+    if (user.perfil === 'SUPER_ADMIN') {
+      return res.status(403).json({ error: 'Não é possível excluir um SUPER_ADMIN' })
+    }
+
+    await prisma.usuario.delete({
+      where: { id }
+    })
+
+    return res.json({ message: 'Usuário excluído com sucesso' })
   }
 }

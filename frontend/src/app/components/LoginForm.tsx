@@ -47,8 +47,12 @@ export function LoginForm() {
 
       signIn(token, user)
 
-      // Redireciona para o dashboard após o login
-      navigate('/dashboard')
+      // Redireciona de acordo com a rule do usuário
+      if (user.role === 'SUPER_ADMIN') {
+        navigate('/superadmin')
+      } else {
+        navigate('/dashboard')
+      }
     } catch (error) {
       // Aqui você pode tratar os erros, por exemplo, exibindo uma notificação
       console.error('Falha no login:', error)
