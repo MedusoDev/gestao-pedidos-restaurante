@@ -1,5 +1,16 @@
-declare namespace Express {
-  export interface Request {
-    user_id: string;
+import { PerfilUsuario } from '@prisma/client';
+
+
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        id: string;
+        email: string;
+        perfil: PerfilUsuario;
+        estabelecimentoId?: string | null;
+      };
+      user_id?: string;
+    }
   }
 }
