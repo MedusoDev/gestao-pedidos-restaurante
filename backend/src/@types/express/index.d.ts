@@ -10,7 +10,6 @@ declare global {
         perfil: PerfilUsuario;
         estabelecimentoId?: string | null;
       };
-      user_id?: string;
     }
   }
 }

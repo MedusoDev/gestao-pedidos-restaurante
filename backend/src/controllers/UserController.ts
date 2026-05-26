@@ -97,7 +97,7 @@ export class UserController {
 
   async me(req: Request, res: Response) {
     const user = await prisma.usuario.findUnique({
-      where: { id: req.user_id },
+      where: { id: req.user!.id },
       select: {
         id: true,
         nome: true,

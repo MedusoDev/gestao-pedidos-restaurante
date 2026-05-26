@@ -4,7 +4,10 @@ import { Dashboard } from './pages/Dashboard'
 import { Settings } from './pages/Settings'
 import { Register } from './pages/Register'
 import { Mesas } from './pages/Mesas'
+import { Menu } from './pages/Menu'
 import { Auth } from './pages/Auth'
+import { PublicMenu } from './pages/PublicMenu'
+import { QRCodeManager } from './pages/QRCodeManager'
 import { useContext } from 'react'
 import { AuthContext } from './contexts/AuthContext'
 
@@ -43,6 +46,11 @@ export const router = createBrowserRouter([
     path: '/',
     Component: Auth,
   },
+  // ROTA PÚBLICA: Cardápio por QR Code
+  {
+    path: '/cardapio/:estabelecimentoId',
+    Component: PublicMenu,
+  },
   {
     path: '/superadmin',
     element: <SuperAdminRoute />,
@@ -65,6 +73,8 @@ export const router = createBrowserRouter([
         children: [
           { index: true, Component: Dashboard },
           { path: 'configuracoes', Component: Settings },
+          { path: 'cardapio', Component: Menu },
+          { path: 'qrcode', Component: QRCodeManager },
           {
             path: 'registro',
             element: <AdminRoute />,

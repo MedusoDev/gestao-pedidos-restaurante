@@ -7,22 +7,15 @@ const allowedStatuses: StatusMesa[] = ['LIVRE', 'OCUPADA', 'RESERVADA', 'MANUTEN
 
 export class MesaController {
   async index(req: Request, res: Response) {
-    const user = await prisma.usuario.findUnique({
-      where: { id: req.user_id },
-      select: { estabelecimentoId: true },
-    })
+    const estabelecimentoId = req.user!.estabelecimentoId;
 
-    if (!user) {
-      return res.status(404).json({ error: 'Usuário não encontrado' })
-    }
-
-    if (!user.estabelecimentoId) {
+    if (!estabelecimentoId) {
       return res.status(400).json({ error: 'Usuário não está vinculado a um estabelecimento' })
     }
 
     const mesas = await prisma.mesa.findMany({
       where: {
-        estabelecimentoId: user.estabelecimentoId,
+        estabelecimentoId: estabelecimentoId,
       },
       select: {
         id: true,

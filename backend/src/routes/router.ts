@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { UserController } from '../controllers/UserController'
 import { MesaController } from '../controllers/MesaController'
 import { EstabelecimentoController } from '../controllers/EstabelecimentoController'
+import { PublicController } from '../controllers/PublicController'
 import { isAuthenticated } from '../middlewares/isAuthenticated'
 import { isAdmin } from '../middlewares/isAdmin'
 import { CategoriaController } from '../controllers/CategoriaController';
@@ -10,11 +11,23 @@ import upload from '../middlewares/upload';
 
 const categoriaController = new CategoriaController();
 const itemController = new ItemCardapioController();
+const publicController = new PublicController();
 
 const router = Router()
 const userController = new UserController()
 const mesaController = new MesaController()
 const estabelecimentoController = new EstabelecimentoController()
+
+// ============ ROTAS PÚBLICAS (sem autenticação) ============
+
+// Cardápio público
+router.get('/public/cardapio/:estabelecimentoId', (req, res) => publicController.obterCardapio(req, res));
+
+// QR Code
+router.get('/public/qrcode/:estabelecimentoId', (req, res) => publicController.obterQRCode(req, res));
+router.get('/public/qrcode/:estabelecimentoId/download', (req, res) => publicController.downloadQRCode(req, res));
+
+// ============ ROTAS AUTENTICADAS ============
 
 router.post('/login', userController.login)
 
