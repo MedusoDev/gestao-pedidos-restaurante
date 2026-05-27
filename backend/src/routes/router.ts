@@ -5,12 +5,15 @@ import { EstabelecimentoController } from '../controllers/EstabelecimentoControl
 import { PublicController } from '../controllers/PublicController'
 import { isAuthenticated } from '../middlewares/isAuthenticated'
 import { isAdmin } from '../middlewares/isAdmin'
+import { isPedidoOperator } from '../middlewares/isPedidoOperator'
 import { CategoriaController } from '../controllers/CategoriaController';
 import { ItemCardapioController } from '../controllers/ItemCardapioController';
+import { PedidoController } from '../controllers/PedidoController';
 import upload from '../middlewares/upload';
 
 const categoriaController = new CategoriaController();
 const itemController = new ItemCardapioController();
+const pedidoController = new PedidoController();
 const publicController = new PublicController();
 
 const router = Router()
@@ -54,5 +57,14 @@ router.get('/itens', isAuthenticated, (req, res) => itemController.listar(req, r
 router.put('/itens/:id', isAuthenticated, upload.single('imagem'), (req, res) => itemController.editar(req, res));
 router.patch('/itens/:id/disponivel', isAuthenticated, (req, res) => itemController.toggleDisponivel(req, res));
 router.delete('/itens/:id', isAuthenticated, (req, res) => itemController.excluir(req, res));
+
+// Pedidos
+router.post('/pedidos', isAuthenticated, isPedidoOperator, (req, res) => pedidoController.criar(req, res));
+router.get('/pedidos', isAuthenticated, isPedidoOperator, (req, res) => pedidoController.listar(req, res));
+router.get('/pedidos/:id', isAuthenticated, isPedidoOperator, (req, res) => pedidoController.obterPorId(req, res));
+router.patch('/pedidos/:id/status', isAuthenticated, isPedidoOperator, (req, res) => pedidoController.atualizarStatus(req, res));
+router.patch('/pedidos/:id/delivery/status', isAuthenticated, isPedidoOperator, (req, res) => pedidoController.atualizarStatusEntrega(req, res));
+router.patch('/pedidos/:id/cancelar', isAuthenticated, isPedidoOperator, (req, res) => pedidoController.cancelarPedido(req, res));
+router.delete('/pedidos/:id', isAuthenticated, isAdmin, (req, res) => pedidoController.deletarPedido(req, res));
 
 export default router

@@ -13,3 +13,20 @@ api.interceptors.request.use((config) => {
 
   return config
 })
+
+// Interceptor para tratar erros de resposta
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token inválido ou expirado - fazer logout
+      localStorage.removeItem('@gestao-pedidos:token')
+      localStorage.removeItem('@gestao-pedidos:user')
+      // Redirecionar para login
+      window.location.href = '/'
+    }
+    return Promise.reject(error)
+  }
+)
+
+export default api

@@ -13,6 +13,7 @@ import {
   UtensilsCrossed,
   ArrowLeftCircle,
   QrCode,
+  ShoppingCart,
 } from "lucide-react";
 import { Input } from "../components/ui/input";
 import { Avatar, AvatarFallback } from "../components/ui/avatar";
@@ -40,6 +41,7 @@ export function DashboardLayout() {
 
   const menuItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
+    { icon: ShoppingCart, label: "Pedidos", path: "/dashboard/pedidos" },
     { icon: Settings, label: "Configurações", path: "/dashboard/configuracoes" },
     { icon: UtensilsCrossed, label: "Cardápio", path: "/dashboard/cardapio" },
     { icon: QrCode, label: "QR Code", path: "/dashboard/qrcode" },
