@@ -1,8 +1,16 @@
 import { LoginForm } from '@/app/components/LoginForm'
+import { useEffect } from "react";
 
 export function Auth() {
+  useEffect(() => {
+    document.documentElement.classList.remove("dark");
+
+    return () => {
+      document.documentElement.classList.add("dark");
+    };
+  }, []);
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen">;
       {/* Lado esquerdo — formulário */}
       <div className="flex w-full flex-col items-center justify-center px-8 md:w-1/2">
         <div className="w-full max-w-sm space-y-8">
