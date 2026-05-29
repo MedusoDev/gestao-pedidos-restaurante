@@ -72,6 +72,7 @@ model Usuario {
 
   pedidos           Pedido[]
 
+  @@index([estabelecimentoId])
   @@map("usuario")
 }
 
@@ -87,6 +88,8 @@ model Mesa {
   pedidos           Pedido[]
 
   @@unique([estabelecimentoId, numero])
+  @@index([status])
+  @@index([estabelecimentoId])
   @@map("mesa")
 }
 
@@ -138,6 +141,10 @@ model Pedido {
   itens      ItemPedido[]
   delivery   Delivery?
 
+  @@index([status])
+  @@index([usuarioId])
+  @@index([mesaId])
+  @@index([criadoEm])
   @@map("pedido")
 }
 

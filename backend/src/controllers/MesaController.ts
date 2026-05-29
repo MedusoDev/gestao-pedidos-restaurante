@@ -83,4 +83,43 @@ export class MesaController {
 
     return res.json(mesa)
   }
+
+  async update(req: Request, res: Response) {
+    const { id } = req.params
+    const { status, capacidade } = req.body
+
+    // Validações
+    if (status && !allowedStatuses.includes(status as StatusMesa)) {
+      return res.status(400).json({ error: 'Status da mesa inválido' })
+    }
+
+    if (capacidade !== undefined) {
+      const capacidadeNum = Number(capacidade)
+      if (!Number.isInteger(capacidadeNum) || capacidadeNum <= 0) {
+        return res.status(400).json({ error: 'Capacidade inválida' })
+      }
+    }
+
+    if (!status && capacidade === undefined) {
+      return res.status(400).json({ error: 'Status ou capacidade são obrigatórios' })
+    }
+
+    const updateData: any = {}
+    if (status) updateData.status = status as StatusMesa
+    if (capacidade !== undefined) updateData.capacidade = Number(capacidade)
+
+    const mesa = await prisma.mesa.update({
+      where: { id },
+      data: updateData,
+      select: {
+        id: true,
+        numero: true,
+        capacidade: true,
+        status: true,
+        estabelecimentoId: true,
+      },
+    })
+
+    return res.json(mesa)
+  }
 }

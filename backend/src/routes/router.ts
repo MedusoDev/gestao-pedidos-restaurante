@@ -42,8 +42,9 @@ router.get('/me', isAuthenticated, userController.me)
 router.post('/usuarios', isAuthenticated, isAdmin, userController.create)
 router.get('/usuarios', isAuthenticated, isAdmin, userController.index)
 router.delete('/usuarios/:id', isAuthenticated, isAdmin, userController.delete)
-router.get('/mesas', isAuthenticated, isAdmin, mesaController.index)
+router.get('/mesas', isAuthenticated, mesaController.index)
 router.post('/mesas', isAuthenticated, isAdmin, mesaController.create)
+router.patch('/mesas/:id', isAuthenticated, mesaController.update)
 
 // Categorias
 router.post('/categorias', isAuthenticated, (req, res) => categoriaController.criar(req, res));

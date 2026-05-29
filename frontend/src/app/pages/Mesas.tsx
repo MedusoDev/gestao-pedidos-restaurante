@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState, useRef } from "react";
 import { AlertCircle, ClipboardList, RefreshCw, LayoutGrid, List, Pencil, Trash2, X, Users, Tag } from "lucide-react";
 import { api } from "@/lib/axios";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
@@ -270,7 +270,6 @@ type EditModalProps = {
 
 const statusOptions: { value: Mesa["status"]; label: string; dot: string }[] = [
   { value: "LIVRE",      label: "Livre",       dot: "bg-emerald-500" },
-  { value: "OCUPADA",    label: "Ocupada",      dot: "bg-rose-500"    },
   { value: "RESERVADA",  label: "Reservada",    dot: "bg-amber-400"   },
   { value: "MANUTENCAO", label: "Manutenção",   dot: "bg-slate-400"   },
 ];
@@ -463,6 +462,9 @@ export function Mesas() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState(false);
 
+  const lastChangeTimeRef = useRef<number>(Date.now());
+  const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
+
   async function loadMesas() {
     if (!user?.estabelecimentoId) {
       setErrorMessage("Não foi possível identificar o estabelecimento.");
@@ -473,7 +475,24 @@ export function Mesas() {
       setIsLoading(true);
       setErrorMessage("");
       const response = await api.get("/mesas");
-      setMesas(response.data.mesas ?? []);
+      let mesas = response.data.mesas ?? [];
+
+      // Validar e liberar mesas OCUPADAS sem pedidos
+      for (const mesa of mesas) {
+        if (mesa.status === "OCUPADA") {
+          const pedidosResponse = await api.get("/pedidos");
+          const pedidosDaMesa = pedidosResponse.data.filter(
+            (p: any) => p.mesaId === mesa.id && p.status !== "ENTREGUE" && p.status !== "CANCELADO"
+          );
+          if (pedidosDaMesa.length === 0) {
+            await api.patch(`/mesas/${mesa.id}`, { status: "LIVRE" });
+            mesa.status = "LIVRE";
+            lastChangeTimeRef.current = Date.now();
+          }
+        }
+      }
+
+      setMesas(mesas);
     } catch (error) {
       console.error("Falha ao carregar mesas:", error);
       setErrorMessage("Não foi possível carregar as mesas cadastradas.");
@@ -482,7 +501,24 @@ export function Mesas() {
     }
   }
 
-  useEffect(() => { loadMesas(); }, [user?.estabelecimentoId]);
+  const setupSmartPolling = () => {
+    const poll = async () => {
+      await loadMesas();
+      const timeSinceLastChange = Date.now() - lastChangeTimeRef.current;
+      const interval = timeSinceLastChange > 300000 ? 300000 : 30000; // 5min ou 30s
+      if (intervalIdRef.current) clearInterval(intervalIdRef.current);
+      intervalIdRef.current = setInterval(poll, interval);
+    };
+    intervalIdRef.current = setInterval(poll, 300000);
+  };
+
+  useEffect(() => { 
+    loadMesas();
+    setupSmartPolling();
+    return () => {
+      if (intervalIdRef.current) clearInterval(intervalIdRef.current);
+    };
+  }, [user?.estabelecimentoId]);
 
   // ── Edit handlers ──
   function openEditModal(mesa: Mesa) {
@@ -499,7 +535,7 @@ export function Mesas() {
   async function handleSaveMesa(id: string, data: { capacidade: number; status: Mesa["status"] }) {
     try {
       setIsEditLoading(true);
-      await api.put(`/mesas/${id}`, data);
+      await api.patch(`/mesas/${id}`, data);
       setMesas((prev) =>
         prev.map((m) => (m.id === id ? { ...m, ...data } : m)),
       );

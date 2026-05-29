@@ -9,6 +9,7 @@ import { Auth } from './pages/Auth'
 import { PublicMenu } from './pages/PublicMenu'
 import { QRCodeManager } from './pages/QRCodeManager'
 import { Pedidos } from './pages/Pedidos'
+import { Kitchen } from './pages/Kitchen'
 import { useContext } from 'react'
 import { AuthContext } from './contexts/AuthContext'
 
@@ -74,6 +75,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, Component: Dashboard },
           { path: 'pedidos', Component: Pedidos },
+          { path: 'cozinha', Component: Kitchen },
           { path: 'configuracoes', Component: Settings },
           { path: 'cardapio', Component: Menu },
           { path: 'qrcode', Component: QRCodeManager },

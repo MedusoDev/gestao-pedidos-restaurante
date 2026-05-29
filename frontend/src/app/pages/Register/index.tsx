@@ -171,7 +171,7 @@ export function Register() {
       await api.post('/mesas', {
         numero: Number(values.numero),
         capacidade: Number(values.capacidade),
-        status: values.status,
+        status: 'LIVRE',
         estabelecimentoId: user.estabelecimentoId,
       })
 

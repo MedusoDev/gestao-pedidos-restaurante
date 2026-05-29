@@ -12,7 +12,6 @@ export class QRCodeService {
       const qrCodeDataUrl = await QRCode.toDataURL(data, {
         errorCorrectionLevel: 'H',
         type: 'image/png',
-        quality: 0.92,
         margin: 1,
         width: 500,
       });
@@ -30,8 +29,7 @@ export class QRCodeService {
     try {
       const buffer = await QRCode.toBuffer(data, {
         errorCorrectionLevel: 'H',
-        type: 'image/png',
-        quality: 0.92,
+        type: 'png',
         margin: 1,
         width: 500,
       });

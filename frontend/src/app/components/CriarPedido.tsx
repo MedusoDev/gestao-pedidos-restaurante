@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import { Plus, Trash2 } from "lucide-react";
-import api from "../../lib/axios";
+import { api } from "../../lib/axios";
 
 interface ItemCardapio {
   id: string;
@@ -79,8 +79,10 @@ export function CriarPedido() {
         console.log("Tipo de mesas:", typeof mesasRes.data, Array.isArray(mesasRes.data));
         
         mesasArray = Array.isArray(mesasRes.data) ? mesasRes.data : mesasRes.data?.mesas || [];
-        setMesas(mesasArray);
-        console.log("Mesas carregadas:", mesasArray.length);
+        // Filtrar mesas com status LIVRE ou RESERVADA
+        const mesasDisponiveis = mesasArray.filter(mesa => mesa.status === "LIVRE" || mesa.status === "RESERVADA");
+        setMesas(mesasDisponiveis);
+        console.log("Mesas carregadas:", mesasDisponiveis.length);
       } catch (mesasError: any) {
         console.error("Erro ao carregar mesas:", mesasError);
         setError(`Erro ao carregar mesas: ${mesasError.response?.data?.error || mesasError.message}`);
@@ -177,6 +179,16 @@ export function CriarPedido() {
       const response = await api.post("/pedidos", payload);
       console.log("Pedido criado:", response.data);
 
+      // Se foi uma mesa, atualizar status dela para OCUPADA
+      if (tipo === "MESA" && selectedMesa) {
+        try {
+          await api.patch(`/mesas/${selectedMesa}`, { status: "OCUPADA" });
+          console.log("Status da mesa atualizado para OCUPADA");
+        } catch (mesaError: any) {
+          console.error("Erro ao atualizar status da mesa:", mesaError);
+        }
+      }
+
       // Resetar formulário
       setTipo("MESA");
       setSelectedMesa("");
@@ -187,6 +199,9 @@ export function CriarPedido() {
       setTaxaEntrega("");
       setError("");
       setOpen(false);
+
+      // Recarregar mesas para refletir as mudanças
+      await carregarDados();
 
       // Mostrar notificação de sucesso (você pode adicionar toast aqui)
       alert("Pedido criado com sucesso!");

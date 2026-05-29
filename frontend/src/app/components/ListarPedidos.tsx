@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
@@ -16,7 +16,7 @@ import {
   DialogTitle,
 } from "../components/ui/dialog";
 import { Clock, ChefHat, CheckCircle, Truck, User } from "lucide-react";
-import api from "../../lib/axios";
+import { api } from "../../lib/axios";
 
 interface ItemPedido {
   id: string;
@@ -94,14 +94,42 @@ export function ListarPedidos() {
   const [error, setError] = useState<string>("");
   const [selectedPedido, setSelectedPedido] = useState<Pedido | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+  const lastChangeTimeRef = useRef<number>(Date.now());
+  const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
+  const previousPedidosRef = useRef<string>("");
+
+  const setupSmartPolling = () => {
+    const poll = async () => {
+      await carregarPedidos();
+      const timeSinceLastChange = Date.now() - lastChangeTimeRef.current;
+      const interval = timeSinceLastChange > 300000 ? 300000 : 30000; // 5min ou 30s
+      if (intervalIdRef.current) clearInterval(intervalIdRef.current);
+      intervalIdRef.current = setInterval(poll, interval);
+    };
+    intervalIdRef.current = setInterval(poll, 300000);
+  };
 
   useEffect(() => {
     carregarPedidos();
+    setupSmartPolling();
+    return () => {
+      if (intervalIdRef.current) clearInterval(intervalIdRef.current);
+    };
   }, []);
 
   useEffect(() => {
     carregarPedidos();
   }, [filtroStatus, filtroTipo]);
+
+  const detectarMudancas = (novosPedidos: Pedido[]) => {
+    const novaString = JSON.stringify(novosPedidos.map(p => ({ id: p.id, status: p.status })));
+    if (previousPedidosRef.current !== novaString) {
+      previousPedidosRef.current = novaString;
+      lastChangeTimeRef.current = Date.now();
+      return true;
+    }
+    return false;
+  };
 
   const carregarPedidos = async () => {
     try {
@@ -113,7 +141,9 @@ export function ListarPedidos() {
 
       const url = `/pedidos${params.toString() ? "?" + params.toString() : ""}`;
       const response = await api.get(url);
-      setPedidos(response.data);
+      const novosPedidos = response.data;
+      detectarMudancas(novosPedidos);
+      setPedidos(novosPedidos);
     } catch (error: any) {
       console.error("Erro ao carregar pedidos:", error);
       setError(error.response?.data?.error || "Erro ao carregar pedidos");
@@ -125,6 +155,17 @@ export function ListarPedidos() {
   const atualizarStatus = async (pedidoId: string, novoStatus: string) => {
     try {
       await api.patch(`/pedidos/${pedidoId}/status`, { status: novoStatus });
+      
+      // Se foi entregue e é uma mesa, liberar a mesa
+      if (novoStatus === "ENTREGUE" && selectedPedido?.tipo === "MESA" && selectedPedido?.mesa?.id) {
+        try {
+          await api.patch(`/mesas/${selectedPedido.mesa.id}`, { status: "LIVRE" });
+          console.log("Mesa liberada");
+        } catch (mesaError: any) {
+          console.error("Erro ao liberar mesa:", mesaError);
+        }
+      }
+      
       carregarPedidos();
       if (selectedPedido?.id === pedidoId) {
         setSelectedPedido(null);
@@ -415,22 +456,14 @@ export function ListarPedidos() {
               {selectedPedido.status !== "CANCELADO" &&
                 selectedPedido.status !== "ENTREGUE" && (
                   <div className="space-y-2">
-                    {getProximoStatus(selectedPedido.status) && (
+                    {selectedPedido.status === "PRONTO" && (
                       <Button
                         onClick={() => {
-                          const proximoStatus = getProximoStatus(selectedPedido.status);
-                          if (proximoStatus) {
-                            atualizarStatus(selectedPedido.id, proximoStatus);
-                          }
+                          atualizarStatus(selectedPedido.id, "ENTREGUE");
                         }}
-                        className="w-full"
+                        className="w-full bg-green-600 hover:bg-green-700"
                       >
-                        Avançar para{" "}
-                        {getProximoStatus(selectedPedido.status) === "EM_PREPARO" &&
-                          "Preparação"}
-                        {getProximoStatus(selectedPedido.status) === "PRONTO" && "Pronto"}
-                        {getProximoStatus(selectedPedido.status) === "ENTREGUE" &&
-                          "Entregue"}
+                        Entregar Pedido
                       </Button>
                     )}
 

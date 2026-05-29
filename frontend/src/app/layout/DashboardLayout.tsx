@@ -16,6 +16,7 @@ import {
   ChevronDown,
   User,
   Building2,
+  ChefHat,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "../components/ui/avatar";
 import { Button } from "../components/ui/button";
@@ -64,6 +65,7 @@ export function DashboardLayout() {
     { icon: Table2, label: "Mesas", path: "/dashboard/mesas" },
     { icon: UtensilsCrossed, label: "Cardápio", path: "/dashboard/cardapio" },
     { icon: Clipboard, label: "Pedidos", path: "/dashboard/pedidos" },
+    { icon: ChefHat, label: "Cozinha", path: "/dashboard/cozinha" },
   ];
 
   const utilitiesMenuItems = [

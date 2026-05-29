@@ -24,6 +24,41 @@ interface ListPedidosRequest {
 
 const prisma = new PrismaClient();
 
+// Helper function to convert decimal strings to numbers
+function convertPedidoDecimals(pedido: any): any {
+  if (!pedido) return pedido;
+  
+  const converted = { ...pedido };
+  
+  // Convert main pedido numeric fields
+  if (converted.total !== undefined) converted.total = Number(converted.total);
+  if (converted.subtotal !== undefined) converted.subtotal = Number(converted.subtotal);
+  if (converted.desconto !== undefined) converted.desconto = Number(converted.desconto);
+  if (converted.gorjeta !== undefined) converted.gorjeta = Number(converted.gorjeta);
+  
+  // Convert itens prices
+  if (converted.itens && Array.isArray(converted.itens)) {
+    converted.itens = converted.itens.map((item: any) => ({
+      ...item,
+      precoUnitario: Number(item.precoUnitario),
+      item: item.item ? {
+        ...item.item,
+        preco: Number(item.item.preco)
+      } : item.item
+    }));
+  }
+  
+  // Convert delivery taxa
+  if (converted.delivery) {
+    converted.delivery = {
+      ...converted.delivery,
+      taxaEntrega: Number(converted.delivery.taxaEntrega)
+    };
+  }
+  
+  return converted;
+}
+
 export class PedidoService {
   async criar(data: CreatePedidoRequest) {
     // Validações
@@ -115,7 +150,7 @@ export class PedidoService {
       }
     });
 
-    return pedido;
+    return convertPedidoDecimals(pedido);
   }
 
   async listar(data: ListPedidosRequest) {
@@ -185,7 +220,7 @@ export class PedidoService {
       }
     });
 
-    return pedidos;
+    return pedidos.map(convertPedidoDecimals);
   }
 
   async obterPorId(pedidoId: string) {
@@ -214,7 +249,7 @@ export class PedidoService {
       throw new Error('Pedido não encontrado');
     }
 
-    return pedido;
+    return convertPedidoDecimals(pedido);
   }
 
   async atualizarStatus(pedidoId: string, novoStatus: string) {
@@ -248,7 +283,7 @@ export class PedidoService {
       }
     });
 
-    return pedido;
+    return convertPedidoDecimals(pedido);
   }
 
   async atualizarStatusEntrega(pedidoId: string, novoStatus: string) {
@@ -286,7 +321,10 @@ export class PedidoService {
       }
     });
 
-    return delivery;
+    return {
+      ...delivery,
+      pedido: convertPedidoDecimals(delivery.pedido)
+    };
   }
 
   async cancelarPedido(pedidoId: string) {
@@ -314,7 +352,7 @@ export class PedidoService {
       }
     });
 
-    return pedido;
+    return convertPedidoDecimals(pedido);
   }
 
   async deletarPedido(pedidoId: string) {
