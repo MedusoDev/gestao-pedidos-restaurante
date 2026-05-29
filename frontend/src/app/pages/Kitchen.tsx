@@ -42,6 +42,7 @@ export function Kitchen() {
   const [pedidosProntos, setPedidosProntos] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'info' } | null>(null);
+  const [filtroData, setFiltroData] = useState<string>("TODOS");
   const previousProntosRef = useRef<string[]>([]);
   const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
   const lastChangeTimeRef = useRef<number>(Date.now());
@@ -103,6 +104,44 @@ export function Kitchen() {
       console.error("Erro ao atualizar status:", error);
       alert("Erro ao atualizar status do pedido");
     }
+  };
+
+  const agruparPorData = (pedidos: Pedido[]): Record<string, Pedido[]> => {
+    const grupos: Record<string, Pedido[]> = {};
+    
+    pedidos.forEach((pedido) => {
+      const data = new Date(pedido.criadoEm);
+      const chave = data.toLocaleDateString("pt-BR");
+      
+      if (!grupos[chave]) {
+        grupos[chave] = [];
+      }
+      grupos[chave].push(pedido);
+    });
+
+    const datasOrdenadas = Object.keys(grupos).sort((a, b) => {
+      const dataA = new Date(a.split("/").reverse().join("-"));
+      const dataB = new Date(b.split("/").reverse().join("-"));
+      return dataB.getTime() - dataA.getTime();
+    });
+
+    const gruposOrdenados: Record<string, Pedido[]> = {};
+    datasOrdenadas.forEach((data) => {
+      gruposOrdenados[data] = grupos[data];
+    });
+
+    return gruposOrdenados;
+  };
+
+  const filtrarPorData = (pedidos: Pedido[]): Pedido[] => {
+    if (filtroData === "HOJE") {
+      const hoje = new Date().toLocaleDateString("pt-BR");
+      return pedidos.filter((pedido) => {
+        const dataPedido = new Date(pedido.criadoEm).toLocaleDateString("pt-BR");
+        return dataPedido === hoje;
+      });
+    }
+    return pedidos;
   };
 
   const renderPedido = (pedido: Pedido) => (
@@ -168,25 +207,46 @@ export function Kitchen() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 px-4">
       {notification && (
         <Notification message={notification.message} type={notification.type} />
       )}
-      <div>
+      <div className="pt-2">
         <h1 className="text-3xl font-bold">Cozinha</h1>
-        <p className="text-slate-600">Gerenciamento de pedidos</p>
+        <p className="text-slate-600 mt-1">Gerenciamento de pedidos</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Filtro de Data */}
+      <div className="flex gap-3 flex-wrap">
+        <select
+          value={filtroData}
+          onChange={(e) => setFiltroData(e.target.value)}
+          className="px-4 py-2 border border-slate-300 rounded-lg bg-white text-slate-900 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 w-48"
+        >
+          <option value="TODOS">Todos os pedidos</option>
+          <option value="HOJE">Pedidos do dia</option>
+        </select>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Pedidos Recebidos */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 pb-2 border-b-2 border-red-200">
+        <div className="space-y-4 px-2">
+          <div className="flex items-center gap-2 pb-3 border-b-2 border-red-200">
             <AlertCircle className="w-5 h-5 text-red-500" />
-            <h2 className="text-xl font-semibold">Novos Pedidos ({pedidosRecebidos.length})</h2>
+            <h2 className="text-xl font-semibold">Novos Pedidos ({filtrarPorData(pedidosRecebidos).length})</h2>
           </div>
-          <div className="space-y-3">
-            {pedidosRecebidos.length > 0 ? (
-              pedidosRecebidos.map(renderPedido)
+          <div className="space-y-5">
+            {filtrarPorData(pedidosRecebidos).length > 0 ? (
+              Object.entries(agruparPorData(filtrarPorData(pedidosRecebidos))).map(([data, pedidosDoDia]) => (
+                <div key={data} className="space-y-3">
+                  <div className="bg-red-50 border border-red-200 p-3 rounded">
+                    <p className="text-sm font-semibold text-red-800">📅 {data}</p>
+                  </div>
+                  <div className="space-y-3">
+                    {pedidosDoDia.map(renderPedido)}
+                  </div>
+                </div>
+              ))
             ) : (
               <p className="text-slate-500 text-center py-8">Nenhum pedido novo</p>
             )}
@@ -194,14 +254,23 @@ export function Kitchen() {
         </div>
 
         {/* Pedidos em Preparo */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 pb-2 border-b-2 border-yellow-200">
+        <div className="space-y-4 px-2">
+          <div className="flex items-center gap-2 pb-3 border-b-2 border-yellow-200">
             <ChefHat className="w-5 h-5 text-yellow-600" />
-            <h2 className="text-xl font-semibold">Preparando ({pedidosEmPreparo.length})</h2>
+            <h2 className="text-xl font-semibold">Preparando ({filtrarPorData(pedidosEmPreparo).length})</h2>
           </div>
-          <div className="space-y-3">
-            {pedidosEmPreparo.length > 0 ? (
-              pedidosEmPreparo.map(renderPedido)
+          <div className="space-y-5">
+            {filtrarPorData(pedidosEmPreparo).length > 0 ? (
+              Object.entries(agruparPorData(filtrarPorData(pedidosEmPreparo))).map(([data, pedidosDoDia]) => (
+                <div key={data} className="space-y-3">
+                  <div className="bg-yellow-50 border border-yellow-200 p-3 rounded">
+                    <p className="text-sm font-semibold text-yellow-800">📅 {data}</p>
+                  </div>
+                  <div className="space-y-3">
+                    {pedidosDoDia.map(renderPedido)}
+                  </div>
+                </div>
+              ))
             ) : (
               <p className="text-slate-500 text-center py-8">Nenhum pedido em preparo</p>
             )}
@@ -209,14 +278,20 @@ export function Kitchen() {
         </div>
 
         {/* Pedidos Prontos */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 pb-2 border-b-2 border-green-200">
+        <div className="space-y-4 px-2">
+          <div className="flex items-center gap-2 pb-3 border-b-2 border-green-200">
             <CheckCircle2 className="w-5 h-5 text-green-600" />
-            <h2 className="text-xl font-semibold">Prontos ({pedidosProntos.length})</h2>
+            <h2 className="text-xl font-semibold">Prontos ({filtrarPorData(pedidosProntos).length})</h2>
           </div>
-          <div className="space-y-3">
-            {pedidosProntos.length > 0 ? (
-              pedidosProntos.map((pedido) => (
+          <div className="space-y-5">
+            {filtrarPorData(pedidosProntos).length > 0 ? (
+              Object.entries(agruparPorData(filtrarPorData(pedidosProntos))).map(([data, pedidosDoDia]) => (
+                <div key={data} className="space-y-3">
+                  <div className="bg-green-50 border border-green-200 p-3 rounded">
+                    <p className="text-sm font-semibold text-green-800">📅 {data}</p>
+                  </div>
+                  <div className="space-y-3">
+                    {pedidosDoDia.map((pedido) => (
                 <Card key={pedido.id} className="border-l-4 border-l-green-500">
                   <CardHeader className="pb-3">
                     <div className="flex justify-between items-start">
@@ -248,6 +323,9 @@ export function Kitchen() {
                     </div>
                   </CardContent>
                 </Card>
+                    ))}
+                  </div>
+                </div>
               ))
             ) : (
               <p className="text-slate-500 text-center py-8">Nenhum pedido pronto</p>

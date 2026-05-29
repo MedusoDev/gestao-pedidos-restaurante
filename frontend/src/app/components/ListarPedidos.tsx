@@ -90,6 +90,7 @@ export function ListarPedidos() {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [filtroStatus, setFiltroStatus] = useState<string>("TODOS");
   const [filtroTipo, setFiltroTipo] = useState<string>("TODOS");
+  const [filtroData, setFiltroData] = useState<string>("TODOS");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
   const [selectedPedido, setSelectedPedido] = useState<Pedido | null>(null);
@@ -119,7 +120,7 @@ export function ListarPedidos() {
 
   useEffect(() => {
     carregarPedidos();
-  }, [filtroStatus, filtroTipo]);
+  }, [filtroStatus, filtroTipo, filtroData]);
 
   const detectarMudancas = (novosPedidos: Pedido[]) => {
     const novaString = JSON.stringify(novosPedidos.map(p => ({ id: p.id, status: p.status })));
@@ -204,10 +205,49 @@ export function ListarPedidos() {
     return sequencia[status] || null;
   };
 
+  const agruparPorData = (pedidos: Pedido[]): Record<string, Pedido[]> => {
+    const grupos: Record<string, Pedido[]> = {};
+    
+    pedidos.forEach((pedido) => {
+      const data = new Date(pedido.criadoEm);
+      const chave = data.toLocaleDateString("pt-BR");
+      
+      if (!grupos[chave]) {
+        grupos[chave] = [];
+      }
+      grupos[chave].push(pedido);
+    });
+
+    // Ordenar as datas em ordem decrescente (mais recentes primeiro)
+    const datasOrdenadas = Object.keys(grupos).sort((a, b) => {
+      const dataA = new Date(a.split("/").reverse().join("-"));
+      const dataB = new Date(b.split("/").reverse().join("-"));
+      return dataB.getTime() - dataA.getTime();
+    });
+
+    const gruposOrdenados: Record<string, Pedido[]> = {};
+    datasOrdenadas.forEach((data) => {
+      gruposOrdenados[data] = grupos[data];
+    });
+
+    return gruposOrdenados;
+  };
+
+  const filtrarPorData = (pedidos: Pedido[]): Pedido[] => {
+    if (filtroData === "HOJE") {
+      const hoje = new Date().toLocaleDateString("pt-BR");
+      return pedidos.filter((pedido) => {
+        const dataPedido = new Date(pedido.criadoEm).toLocaleDateString("pt-BR");
+        return dataPedido === hoje;
+      });
+    }
+    return pedidos;
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 px-2">
       {/* Filtros */}
-      <div className="flex gap-2">
+      <div className="flex gap-3 flex-wrap">
         <Select value={filtroStatus} onValueChange={setFiltroStatus}>
           <SelectTrigger className="w-40">
             <SelectValue placeholder="Filtrar por status" />
@@ -232,6 +272,16 @@ export function ListarPedidos() {
             <SelectItem value="DELIVERY">Delivery</SelectItem>
           </SelectContent>
         </Select>
+
+        <Select value={filtroData} onValueChange={setFiltroData}>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Filtrar por data" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="TODOS">Todos os pedidos</SelectItem>
+            <SelectItem value="HOJE">Pedidos do dia</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Alerta de Erro */}
@@ -243,27 +293,41 @@ export function ListarPedidos() {
       )}
 
       {/* Lista de Pedidos */}
-      <div className="grid grid-cols-1 gap-3">
+      <div className="space-y-8">
         {loading ? (
-          <p className="text-center py-8 text-slate-500">Carregando pedidos...</p>
-        ) : pedidos.length === 0 ? (
-          <p className="text-center py-8 text-slate-500">Nenhum pedido encontrado</p>
+          <p className="text-center py-12 text-slate-500">Carregando pedidos...</p>
+        ) : filtrarPorData(pedidos).length === 0 ? (
+          <p className="text-center py-12 text-slate-500">Nenhum pedido encontrado</p>
         ) : (
-          pedidos.map((pedido) => (
-            <Card key={pedido.id} className="cursor-pointer hover:shadow-md transition">
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="font-bold text-lg">#{pedido.id.slice(0, 8)}</span>
-                      <Badge variant="outline">{pedido.tipo}</Badge>
-                      <Badge className={statusColors[pedido.status]}>
-                        {statusIcons[pedido.status] && (
-                          <span className="mr-1">{statusIcons[pedido.status]}</span>
-                        )}
-                        {pedido.status}
-                      </Badge>
-                    </div>
+          Object.entries(agruparPorData(filtrarPorData(pedidos))).map(([data, pedidosDoDia]) => (
+            <div key={data} className="space-y-4">
+              {/* Header de Data */}
+              <div className="bg-gradient-to-r from-accent/10 to-accent/5 border-l-4 border-accent p-5 rounded-lg">
+                <h3 className="text-lg font-bold text-slate-900">
+                  📅 Pedidos do dia {data}
+                </h3>
+                <p className="text-sm text-slate-600 mt-1">
+                  {pedidosDoDia.length} pedido{pedidosDoDia.length !== 1 ? "s" : ""}
+                </p>
+              </div>
+
+              {/* Cards de Pedidos */}
+              <div className="grid grid-cols-1 gap-4 px-1">
+                {pedidosDoDia.map((pedido) => (
+                  <Card key={pedido.id} className="cursor-pointer hover:shadow-md transition">
+                    <CardContent className="pt-6">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="font-bold text-lg">#{pedido.id.slice(0, 8)}</span>
+                            <Badge variant="outline">{pedido.tipo}</Badge>
+                            <Badge className={statusColors[pedido.status]}>
+                              {statusIcons[pedido.status] && (
+                                <span className="mr-1">{statusIcons[pedido.status]}</span>
+                              )}
+                              {pedido.status}
+                            </Badge>
+                          </div>
 
                     <div className="text-sm text-slate-600 space-y-1">
                       {pedido.tipo === "MESA" ? (
@@ -312,6 +376,9 @@ export function ListarPedidos() {
                 </div>
               </CardContent>
             </Card>
+                  ))}
+              </div>
+            </div>
           ))
         )}
       </div>
