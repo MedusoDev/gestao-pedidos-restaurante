@@ -9,7 +9,6 @@ import {
   CardTitle,
 } from '@/app/components/ui/card'
 import { Badge } from '@/app/components/ui/badge'
-import { Button } from '@/app/components/ui/button'
 
 interface Categoria {
   id: string
@@ -142,13 +141,6 @@ export function Menu() {
                           <span className="text-2xl font-bold">
                             R$ {typeof item.preco === 'string' ? item.preco : item.preco.toFixed(2)}
                           </span>
-                          <Button
-                            size="sm"
-                            disabled={!item.disponivel}
-                            onClick={() => console.log('Adicionar ao pedido:', item.id)}
-                          >
-                            Adicionar
-                          </Button>
                         </div>
                       </CardContent>
                     </Card>

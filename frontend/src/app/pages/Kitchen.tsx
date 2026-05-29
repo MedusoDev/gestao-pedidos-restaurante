@@ -42,7 +42,7 @@ export function Kitchen() {
   const [pedidosProntos, setPedidosProntos] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'info' } | null>(null);
-  const [filtroData, setFiltroData] = useState<string>("TODOS");
+  const [filtroData, setFiltroData] = useState<string>("TODOS"); // Padrão: mostrar todos os pedidos
   const previousProntosRef = useRef<string[]>([]);
   const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
   const lastChangeTimeRef = useRef<number>(Date.now());

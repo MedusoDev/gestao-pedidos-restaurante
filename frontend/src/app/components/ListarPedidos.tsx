@@ -90,7 +90,7 @@ export function ListarPedidos() {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [filtroStatus, setFiltroStatus] = useState<string>("TODOS");
   const [filtroTipo, setFiltroTipo] = useState<string>("TODOS");
-  const [filtroData, setFiltroData] = useState<string>("TODOS");
+  const [filtroData, setFiltroData] = useState<string>("TODOS"); // Padrão: mostrar todos os pedidos
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
   const [selectedPedido, setSelectedPedido] = useState<Pedido | null>(null);
