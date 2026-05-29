@@ -11,7 +11,6 @@ import {
   LogOut,
   UtensilsCrossed,
   ArrowLeftCircle,
-  QrCode,
   Clipboard,
   ChevronDown,
   User,
@@ -68,15 +67,11 @@ export function DashboardLayout() {
     { icon: ChefHat, label: "Cozinha", path: "/dashboard/cozinha" },
   ];
 
-  const utilitiesMenuItems = [
-    { icon: QrCode, label: "QR Code", path: "/dashboard/qrcode" },
-  ];
-
   const systemMenuItems = [
-    { icon: Settings, label: "Configurações", path: "/dashboard/configuracoes" },
     ...(user?.role === "ADMIN" || user?.role === "SUPER_ADMIN"
-      ? [{ icon: UserPlus, label: "Registros", path: "/dashboard/registro" }]
+      ? [{ icon: UserPlus, label: "Gerenciamento", path: "/dashboard/registro" }]
       : []),
+    { icon: Settings, label: "Configurações", path: "/dashboard/configuracoes" },
   ];
 
   const NavSection = ({
@@ -145,33 +140,34 @@ export function DashboardLayout() {
           </div>
 
           <NavSection title="Restaurante" items={restaurantMenuItems} />
-          <NavSection title="Utilitários" items={utilitiesMenuItems} />
           <NavSection title="Sistema" items={systemMenuItems} />
         </nav>
 
         {/* Footer */}
-          {/* Footer Branding */}
-          <div className="px-4 py-3 border-t border-sidebar-border">
-            <p className="text-xs text-center text-sidebar-foreground/40">
-              Powered by{" "}
-              <span className="font-semibold text-sidebar-foreground/60">
-                Cablobo
-              </span>{" "}
-              - 2026
-            </p>
+          <div>
+            {user?.role === "SUPER_ADMIN" && (
+              <div className="px-3 pt-3">
+                <button
+                  onClick={() => navigate("/superadmin")}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                >
+                  <ArrowLeftCircle className="w-5 h-5" />
+                  <span className="font-medium text-sm">Voltar ao Painel</span>
+                </button>
+              </div>
+            )}
+
+            {/* Footer Branding */}
+            <div className="px-4 py-3 mt-2 border-t border-sidebar-border">
+              <p className="text-xs text-center text-sidebar-foreground/40">
+                Powered by{" "}
+                <span className="font-semibold text-sidebar-foreground/60">
+                  Cablobo
+                </span>{" "}
+                - 2026
+              </p>
+            </div>
           </div>
-        <div className="border-t border-sidebar-border space-y-2">
-          {user?.role === "SUPER_ADMIN" && (
-            <Button
-              variant="outline"
-              onClick={() => navigate("/superadmin")}
-              className="w-full justify-start text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 border-sidebar-border"
-            >
-              <ArrowLeftCircle className="w-4 h-4 mr-2" />
-              Voltar ao Painel
-            </Button>
-          )}
-        </div>
       </aside>
 
       {/* Main Content */}
