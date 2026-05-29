@@ -7,7 +7,6 @@ import { Mesas } from './pages/Mesas'
 import { Menu } from './pages/Menu'
 import { Auth } from './pages/Auth'
 import { PublicMenu } from './pages/PublicMenu'
-import { QRCodeManager } from './pages/QRCodeManager'
 import { Pedidos } from './pages/Pedidos'
 import { useContext } from 'react'
 import { AuthContext } from './contexts/AuthContext'
@@ -76,7 +75,6 @@ export const router = createBrowserRouter([
           { path: 'pedidos', Component: Pedidos },
           { path: 'configuracoes', Component: Settings },
           { path: 'cardapio', Component: Menu },
-          { path: 'qrcode', Component: QRCodeManager },
           {
             path: 'registro',
             element: <AdminRoute />,
